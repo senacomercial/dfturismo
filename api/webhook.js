@@ -1,9 +1,9 @@
-// Função serverless do Vercel: recebe o lead QUALIFICADO do formulário e repassa ao CRM.
+// Função serverless do Vercel: recebe TODO lead do formulário (qualificado ou não) e repassa ao CRM.
 // A URL do webhook fica na variável de ambiente CRM_WEBHOOK_URL (painel do Vercel),
 // assim ela não aparece no código público nem no navegador, e não depende de CORS.
 
 const ALLOWED = [
-  'event', 'event_id', 'timestamp', 'is_qualified', 'lead_temperature',
+  'event', 'event_id', 'timestamp', 'is_qualified', 'disqualification_reason', 'lead_temperature',
   'name', 'whatsapp', 'whatsapp_e164', 'airport', 'destination',
   'timeframe', 'timeframe_label', 'passengers', 'budget', 'budget_label',
   'payment', 'payment_label', 'entry', 'entry_label',
@@ -23,9 +23,9 @@ module.exports = async (req, res) => {
   if (typeof body === 'string') { try { body = JSON.parse(body); } catch (e) { body = {}; } }
   const input = (body && body.lead) || {};
 
-  // Só aceita lead qualificado e com os dados mínimos
-  if (input.is_qualified !== true || !input.name || !input.whatsapp_e164) {
-    return res.status(400).json({ error: 'lead inválido ou não qualificado' });
+  // Aceita qualquer lead, desde que tenha os dados mínimos
+  if (typeof input.is_qualified !== 'boolean' || !input.name || !input.whatsapp_e164) {
+    return res.status(400).json({ error: 'lead inválido' });
   }
 
   const lead = {};
